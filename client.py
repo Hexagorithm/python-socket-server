@@ -40,8 +40,8 @@ def handleOptions(option):
 
     elif option == '2':
         message = str(input("Message:"))
-        successful_send =send(message)
-        if successful_send:
+        send_error = send(message)
+        if not send_error:
             remessage = receive(client_socket)
             print(f"[S]:{remessage}")
 
