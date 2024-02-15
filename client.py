@@ -34,13 +34,15 @@ def getOption():
 
 def handleOptions(option):
     if option == '1':
-        print("Connecting...",end="")
         connect()
-        print("done!")
+        connection_message = receive(client_socket)
+        print(f"{connection_message}")
 
     elif option == '2':
         message = str(input("Message:"))
         send(message)
+        remessage = receive(client_socket)
+        print(f"[S]:{remessage}")
 
     elif option == '3':
         closeConnection()
@@ -65,6 +67,12 @@ def send(message):
     client_socket.send(message_length_encoded_padded)
     client_socket.send(message_encoded)
     return None
+
+def receive(client_socket):
+    message_length = int(client_socket.recv(MESSHEADER).decode(MESSFORMAT))
+    message = client_socket.recv(message_length).decode(MESSFORMAT)
+    return message
+
 
 def connect():
     global client_socket,is_connected

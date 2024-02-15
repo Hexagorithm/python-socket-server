@@ -20,6 +20,7 @@ def startServer():
     server_socket.listen() # enable connection
     while True:
         client_socket, client_addr = server_socket.accept()
+        send("[S]:Connected succesfully!",client_socket)
         thread = threading.Thread(target=clientHandling, args=(client_socket,client_addr),daemon=True)
         thread.start()
         print(f"[S]Online connections: {threading.active_count() - 1}")
@@ -33,6 +34,8 @@ def clientHandling(client_socket,client_addr):
     while is_connected:
         message = receive(client_socket)
         print(f"[M][{client_addr[0]}]:\'{message}\'") 
+        if message != DISCONNECT_MESSAGE:
+            send(message, client_socket)
          
         if message == DISCONNECT_MESSAGE:
             print(f"[-][{client_addr[0]}]")
@@ -49,6 +52,13 @@ def receive(client_socket):
         return None
     message = client_socket.recv(int(message_length)).decode(MESSFORMAT)
     return message
+
+def send(message, client_socket):
+    message = message.encode(MESSFORMAT)
+    length = str(len(message)).encode(MESSFORMAT) + b' ' * (MESSHEADER - len(str(len(message)).encode(MESSFORMAT)))
+    client_socket.send(length)
+    client_socket.send(message)
+    return None
 
 try:
     startServer()
