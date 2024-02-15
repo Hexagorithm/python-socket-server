@@ -40,9 +40,10 @@ def handleOptions(option):
 
     elif option == '2':
         message = str(input("Message:"))
-        send(message)
-        remessage = receive(client_socket)
-        print(f"[S]:{remessage}")
+        successful_send =send(message)
+        if successful_send:
+            remessage = receive(client_socket)
+            print(f"[S]:{remessage}")
 
     elif option == '3':
         closeConnection()
@@ -59,14 +60,14 @@ def handleOptions(option):
 def send(message):
     if not is_connected:
         print("E:Can\'t send message: user not connected.")
-        return None
+        return 1
     message_encoded = message.encode(MESSFORMAT)
     message_length = len(message)
     message_length_encoded = str(message_length).encode(MESSFORMAT) #we will be sending the lenght as a message too
     message_length_encoded_padded = message_length_encoded + b' '* (MESSHEADER - len(message_length_encoded))#make sure the length is the appropriate header length
     client_socket.send(message_length_encoded_padded)
     client_socket.send(message_encoded)
-    return None
+    return 0 
 
 def receive(client_socket):
     message_length = int(client_socket.recv(MESSHEADER).decode(MESSFORMAT))
