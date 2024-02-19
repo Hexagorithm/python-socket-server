@@ -20,7 +20,6 @@ def startServer():
     server_socket.listen() # enable connection
     while True:
         client_socket, client_addr = server_socket.accept()
-        send("[S]:Connected succesfully!",client_socket)
         thread = threading.Thread(target=clientHandling, args=(client_socket,client_addr),daemon=True)
         thread.start()
         print(f"[S]Online connections: {threading.active_count() - 1}")
@@ -28,14 +27,29 @@ def startServer():
 
 
 def clientHandling(client_socket,client_addr):
+
+    def send(message):
+        message = message.encode(MESSFORMAT)
+        length = str(len(message)).encode(MESSFORMAT) + b' ' * (MESSHEADER - len(str(len(message)).encode(MESSFORMAT)))
+        client_socket.send(length)
+        client_socket.send(message)
+        return None
+
+    def receive():
+        message_length = client_socket.recv(MESSHEADER).decode(MESSFORMAT) #length of message
+        if message_length == "":
+            return None
+        message = client_socket.recv(int(message_length)).decode(MESSFORMAT)
+        return message
+
     print(f"[+]{client_addr[0]}:{client_addr[1]}")
+    send("[S]:Connected succesfully!")
     is_connected = True
-    
     while is_connected:
-        message = receive(client_socket)
+        message = receive()
         print(f"[M][{client_addr[0]}]:\'{message}\'") 
         if message != DISCONNECT_MESSAGE:
-            send(message, client_socket)
+            send(message)
          
         if message == DISCONNECT_MESSAGE:
             print(f"[-][{client_addr[0]}]")
@@ -46,19 +60,7 @@ def clientHandling(client_socket,client_addr):
    
     return None
 
-def receive(client_socket):
-    message_length = client_socket.recv(MESSHEADER).decode(MESSFORMAT) #length of message
-    if message_length == "":
-        return None
-    message = client_socket.recv(int(message_length)).decode(MESSFORMAT)
-    return message
 
-def send(message, client_socket):
-    message = message.encode(MESSFORMAT)
-    length = str(len(message)).encode(MESSFORMAT) + b' ' * (MESSHEADER - len(str(len(message)).encode(MESSFORMAT)))
-    client_socket.send(length)
-    client_socket.send(message)
-    return None
 
 try:
     startServer()
